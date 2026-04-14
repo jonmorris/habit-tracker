@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Habit Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f9fafb;
+      --card:      #ffffff;
+      --border:    #e5e7eb;
+      --border-lt: #f3f4f6;
+      --text:      #111827;
+      --text-2:    #4b5563;
+      --text-3:    #9ca3af;
+      --text-4:    #d1d5db;
+      --accent:    #6366f1;
+      --accent-bg: #eef2ff;
+      --accent-bd: #c7d2fe;
+      --accent-dk: #4338ca;
+      --danger:    #dc2626;
+      --danger-bg: #fef2f2;
+      --r: 8px;
+      --r-sm: 5px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .hdr {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .hdr-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hdr-icon {
+      width: 22px;
+      height: 22px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .tab {
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-2);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .hdr-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-2);
+      font-family: inherit;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn:hover { border-color: var(--text-3); color: var(--text); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent-dk); border-color: var(--accent-dk); color: #fff; }
+
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-icon { padding: 6px 8px; }
+
+    /* ── Main ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* ── Period nav ── */
+    .period-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      justify-content: center;
+      position: relative;
+    }
+
+    .period-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .period-arrow:hover { border-color: var(--text-3); color: var(--text); }
+
+    .period-label {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      min-width: 200px;
+      text-align: center;
+    }
+
+    .today-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 6px 12px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .today-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Add habit form ── */
+    .add-form {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .form-input {
+      flex: 1;
+      min-width: 260px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+
+    .freq-select {
+      padding: 9px 30px 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-2);
+      background: #fff;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 14px;
+    }
+
+    .day-pills {
+      display: flex;
+      gap: 4px;
+    }
+
+    .day-pill {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .day-pill:hover { border-color: var(--text-3); color: var(--text-2); }
+    .day-pill.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .habit-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      min-width: 100%;
+    }
+
+    .habit-table th,
+    .habit-table td {
+      padding: 0;
+      border: none;
+    }
+
+    .habit-table thead th {
+      background: var(--bg);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-3);
+      padding: 12px 6px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    .th-habit {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: var(--bg) !important;
+      text-align: left !important;
+      padding-left: 18px !important;
+      min-width: 260px;
+      border-right: 1px solid var(--border);
+    }
+
+    .th-actions {
+      width: 50px;
+      position: sticky;
+      right: 0;
+      z-index: 3;
+      background: var(--bg) !important;
+      border-left: 1px solid var(--border);
+    }
+
+    .col-day {
+      min-width: 46px;
+    }
+
+    .day-num {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-2);
+      line-height: 1.1;
+      margin-top: 1px;
+    }
+
+    .day-letter {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-3);
+      letter-spacing: 0.05em;
+    }
+
+    .col-day.today .day-num,
+    .col-day.today .day-letter {
+      color: var(--accent);
+    }
+
+    .habit-table tbody tr {
+      border-bottom: 1px solid var(--border-lt);
+      transition: background 0.1s;
+    }
+
+    .habit-table tbody tr:hover {
+      background: var(--bg);
+    }
+    .habit-table tbody tr:hover .td-habit { background: var(--bg); }
+    .habit-table tbody tr:hover .td-actions { background: var(--bg); }
+
+    .habit-table tbody tr:last-child td { border-bottom: none; }
+
+    .habit-table tbody td {
+      border-bottom: 1px solid var(--border-lt);
+      padding: 10px 6px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .td-habit {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--card);
+      text-align: left !important;
+      padding: 12px 18px 12px 12px !important;
+      border-right: 1px solid var(--border);
+      min-width: 260px;
+    }
+
+    /* ── Drag handle ── */
+    .habit-row-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drag-handle {
+      flex-shrink: 0;
+      width: 18px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-4);
+      cursor: grab;
+      border-radius: 4px;
+      transition: color 0.12s, background 0.12s;
+      user-select: none;
+    }
+    .drag-handle:hover { color: var(--text-2); background: var(--border-lt); }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle svg { display: block; }
+
+    .habit-row-body { flex: 1; min-width: 0; }
+
+    tr.dragging { opacity: 0.4; }
+    tr.dragging .td-habit { background: var(--accent-bg); }
+
+    /* ── Perfect 7-day streak state ── */
+    tr.perfect .td-habit { background: var(--accent); border-right-color: var(--accent-dk); }
+    .habit-table tbody tr.perfect:hover .td-habit { background: var(--accent-dk); }
+    tr.perfect .habit-name,
+    tr.perfect .habit-meta {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Streak display (right side of habit cell) ── */
+    .streak-display {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+      white-space: nowrap;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--border-lt);
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+    .streak-display .streak-fire { font-size: 15px; }
+    tr.perfect .streak-display {
+      background: #fff;
+      color: var(--text-2);
+      border-color: #fff;
+    }
+    .habit-row-body.has-streak { padding-right: 50px; }
+    .habit-row-body.has-streak-fire { padding-right: 70px; }
+    tr.perfect .habit-name { color: #fff; }
+    tr.perfect .habit-name:hover { background: rgba(255,255,255,0.15); }
+    tr.perfect .habit-meta { color: rgba(255,255,255,0.85); }
+    tr.perfect .habit-meta span { color: rgba(255,255,255,0.85); }
+    tr.perfect .streak-badge { background: rgba(255,255,255,0.22); color: #fff; }
+    tr.perfect .pct-badge { color: rgba(255,255,255,0.85); }
+    tr.perfect .drag-handle { color: rgba(255,255,255,0.6); }
+    tr.perfect .drag-handle:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+    tr.drag-over-top td { box-shadow: inset 0 2px 0 0 var(--accent); }
+    tr.drag-over-bot td { box-shadow: inset 0 -2px 0 0 var(--accent); }
+
+    .td-actions {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: var(--card);
+      border-left: 1px solid var(--border);
+      width: 50px;
+    }
+
+    .habit-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+      line-height: 1.3;
+      cursor: text;
+      padding: 1px 4px;
+      margin-left: -4px;
+      border-radius: 3px;
+      transition: background 0.1s;
+    }
+    .habit-name:hover { background: var(--border-lt); }
+
+    .habit-name-input {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 3px;
+      padding: 1px 4px;
+      margin-left: -4px;
+      border: 1.5px solid var(--accent);
+      border-radius: 4px;
+      background: #fff;
+      outline: none;
+      font-family: inherit;
+      width: calc(100% + 8px);
+      max-width: 280px;
+    }
+
+    .habit-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-3);
+      min-height: 18px;
+    }
+
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 7px;
+      background: var(--accent-bg);
+      color: var(--accent-dk);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .pct-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-3);
+    }
+
+    /* ── Checkbox ── */
+    .cb {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      padding: 0;
+    }
+    .cb:hover { border-color: var(--accent); }
+
+    .cb.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .cb.checked::after {
+      content: '';
+      width: 11px;
+      height: 6px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+
+    .cb.disabled {
+      background: var(--border-lt);
+      border-color: var(--border-lt);
+      cursor: not-allowed;
+    }
+    .cb.disabled:hover { border-color: var(--border-lt); }
+
+    .cb.future {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Today column highlight */
+    .col-day.today {
+      background: var(--accent-bg);
+    }
+    tbody .col-day.today {
+      background: var(--accent-bg);
+    }
+
+    /* ── Delete button ── */
+    .del-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--text-4);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .del-btn:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-bg); }
+
+    /* ── Empty state ── */
+    .empty {
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    .empty-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 4px;
+    }
+
+    .empty-hint {
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.hidden { display: none; }
+
+    .modal {
+      background: #fff;
+      border-radius: var(--r);
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal-text {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    .btn-danger:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--text);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      z-index: 1000;
+      transition: transform 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Scrollbars ── */
+    ::-webkit-scrollbar { height: 8px; width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
+
+    /* ── Annual heatmap ── */
+    .annual-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px 20px;
+    }
+    .annual-months {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px 28px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .annual-month {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-auto-rows: 22px;
+      gap: 0;
+      justify-items: center;
+      align-items: center;
+    }
+    .annual-legend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 22px;
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+    .annual-legend .dot { margin: 0 1px; }
+
+    .dot {
+      display: inline-block;
+      border-radius: 50%;
+      background: var(--border-lt);
+      flex-shrink: 0;
+    }
+    .dot.spacer { visibility: hidden; }
+    .dot.future { width: 8px; height: 8px; background: var(--border); opacity: 0.5; }
+    .dot.empty  { width: 8px; height: 8px; background: var(--border); }
+    .dot.lvl-0  { width: 8px;  height: 8px;  background: #e5e7eb; }
+    .dot.lvl-1  { width: 8px;  height: 8px;  background: #c7d2fe; }
+    .dot.lvl-2  { width: 9px;  height: 9px;  background: #a5b4fc; }
+    .dot.lvl-3  { width: 10px; height: 10px; background: #818cf8; }
+    .dot.lvl-4  { width: 11px; height: 11px; background: #6366f1; }
+    .dot.lvl-5  { width: 12px; height: 12px; background: #4338ca; }
+    .dot.today  { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--accent); }
+
+    @media (max-width: 640px) {
+      .annual-months { grid-template-columns: repeat(3, 1fr); gap: 16px 18px; }
+    }
+    @media (max-width: 420px) {
+      .annual-months { grid-template-columns: repeat(2, 1fr); gap: 14px 16px; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hdr { padding: 12px 14px; gap: 10px; }
+      .hdr-title { font-size: 14px; }
+      .tab { padding: 5px 11px; font-size: 12px; }
+      .main { padding: 16px 12px 50px; }
+      .add-form { padding: 14px; gap: 10px; }
+      .form-input { min-width: 100%; flex-basis: 100%; }
+      .day-pills { width: 100%; justify-content: space-between; }
+      .period-label { min-width: auto; font-size: 14px; }
+      .th-habit, .td-habit { min-width: 150px; padding-left: 12px !important; }
+      .habit-name { font-size: 13px; }
+      .col-day { min-width: 42px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hdr">
+    <span class="hdr-title"><span class="hdr-icon">✓</span>Habit Tracker</span>
+    <div class="tabs">
+      <button class="tab active" id="tab-monthly" onclick="setView('monthly')">Monthly</button>
+      <button class="tab"        id="tab-annual"  onclick="setView('annual')">Annual</button>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-sm" onclick="exportData()">Export</button>
+      <button class="btn btn-sm" onclick="document.getElementById('import-file').click()">Import</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="period-nav">
+      <button class="period-arrow" onclick="navPeriod(-1)">&#8592;</button>
+      <span class="period-label" id="period-label"></span>
+      <button class="period-arrow" onclick="navPeriod(1)">&#8594;</button>
+      <button class="today-btn" id="today-btn" onclick="goToday()" style="display:none">Today</button>
+    </div>
+
+    <form class="add-form" id="add-form" onsubmit="submitHabit(event)">
+      <input class="form-input" id="habit-name" type="text" placeholder="New habit (e.g. Drink water, Read, Stretch)" autocomplete="off">
+      <select class="freq-select" id="freq-select" onchange="onFreqChange()">
+        <option value="daily">Every day</option>
+        <option value="custom">Custom days</option>
+      </select>
+      <div class="day-pills" id="day-pills" style="display:none">
+        <button type="button" class="day-pill" data-day="0">M</button>
+        <button type="button" class="day-pill" data-day="1">T</button>
+        <button type="button" class="day-pill" data-day="2">W</button>
+        <button type="button" class="day-pill" data-day="3">T</button>
+        <button type="button" class="day-pill" data-day="4">F</button>
+        <button type="button" class="day-pill" data-day="5">S</button>
+        <button type="button" class="day-pill" data-day="6">S</button>
+      </div>
+      <button class="btn btn-primary" type="submit">+ Add</button>
+    </form>
+
+    <div id="table-area"></div>
+  </main>
+
+  <div class="modal-overlay hidden" id="modal-overlay" onclick="onOverlay(event)">
+    <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════
+// Day index: 0=Mon, 1=Tue, ... 6=Sun
+const DAY_LETTERS = ['M','T','W','T','F','S','S'];
+const DAY_NAMES   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const STORE_KEY = 'habit-tracker-v1';
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let state = {
+  habits: [],            // [{ id, name, frequency: 'daily'|{days:[]}, createdAt }]
+  completions: {},       // { habitId: { 'YYYY-MM-DD': true } }
+  view: 'monthly',
+  monthStart: '',        // first day of month ISO
+  currentYear: 0,        // for annual view
+  // form ephemeral
+  selectedDays: new Set(),
+};
+
+// ═══════════════════════════════════════════
+//  DATE UTILS
+// ═══════════════════════════════════════════
+function todayISO() { return toISO(new Date()); }
+
+function fromISO(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function toISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(iso, n) {
+  const d = fromISO(iso);
+  d.setDate(d.getDate() + n);
+  return toISO(d);
+}
+
+function getMondayISO(iso) {
+  const d = fromISO(iso);
+  const day = d.getDay(); // 0=Sun
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+  return toISO(d);
+}
+
+function getMonthStartISO(iso) {
+  const d = fromISO(iso);
+  d.setDate(1);
+  return toISO(d);
+}
+
+function getMondayIndex(iso) {
+  // Returns 0=Mon..6=Sun
+  const day = fromISO(iso).getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+function getDaysInMonth(iso) {
+  const d = fromISO(iso);
+  return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+}
+
+function getMonthDays(iso) {
+  // Returns array of ISO dates for the entire month
+  const start = fromISO(iso);
+  const total = getDaysInMonth(iso);
+  const days = [];
+  for (let i = 0; i < total; i++) {
+    const d = new Date(start);
+    d.setDate(1 + i);
+    days.push(toISO(d));
+  }
+  return days;
+}
+
+function getWeekDays(monIso) {
+  return Array.from({length: 7}, (_,i) => addDays(monIso, i));
+}
+
+function fmtWeekRange(monIso) {
+  const sun = addDays(monIso, 6);
+  const s = fromISO(monIso), e = fromISO(sun);
+  const opts = { month:'short', day:'numeric' };
+  if (s.getMonth() === e.getMonth())
+    return s.toLocaleDateString('en-US', opts) + '–' + e.getDate() + ', ' + e.getFullYear();
+  return s.toLocaleDateString('en-US', opts) + ' – ' + e.toLocaleDateString('en-US', opts) + ', ' + e.getFullYear();
+}
+
+function fmtMonth(iso) {
+  return fromISO(iso).toLocaleDateString('en-US', { month:'long', year:'numeric' });
+}
+
+function getYearDays(year) {
+  const days = [];
+  const cur = new Date(year, 0, 1);
+  while (cur.getFullYear() === year) {
+    days.push(toISO(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
+
+function getDayAdherence(dateIso) {
+  let scheduled = 0, completed = 0;
+  state.habits.forEach(h => {
+    if (isHabitScheduledOn(h, dateIso)) {
+      scheduled++;
+      if (isCompleted(h.id, dateIso)) completed++;
+    }
+  });
+  return { scheduled, completed, pct: scheduled > 0 ? completed / scheduled : null };
+}
+
+// ═══════════════════════════════════════════
+//  PERSISTENCE
+// ═══════════════════════════════════════════
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      state.habits = d.habits || [];
+      state.completions = d.completions || {};
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      habits: state.habits,
+      completions: state.completions,
+    }));
+  } catch(e) {}
+}
+
+function exportData() {
+  const data = localStorage.getItem(STORE_KEY) || JSON.stringify({habits:[], completions:{}});
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'habit-tracker-' + todayISO() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data || !Array.isArray(data.habits)) throw new Error('bad format');
+      if (!confirm('Import ' + data.habits.length + ' habits? This will replace your current data.')) return;
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      state.habits = data.habits;
+      state.completions = data.completions || {};
+      render();
+      showToast('Imported successfully');
+    } catch(err) {
+      alert('Could not import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function isHabitScheduledOn(habit, dateIso) {
+  if (habit.frequency === 'daily') return true;
+  if (habit.frequency && Array.isArray(habit.frequency.days)) {
+    return habit.frequency.days.includes(getMondayIndex(dateIso));
+  }
+  return false;
+}
+
+function isCompleted(habitId, dateIso) {
+  return !!(state.completions[habitId] && state.completions[habitId][dateIso]);
+}
+
+function toggleCompletion(habitId, dateIso) {
+  if (!state.completions[habitId]) state.completions[habitId] = {};
+  if (state.completions[habitId][dateIso]) {
+    delete state.completions[habitId][dateIso];
+  } else {
+    state.completions[habitId][dateIso] = true;
+  }
+  saveState();
+}
+
+// ── Streak: consecutive scheduled days completed up to today (or last scheduled day before today)
+function computeStreak(habit) {
+  const today = todayISO();
+  let streak = 0;
+  let cursor = today;
+  // Walk backwards up to 365 days
+  for (let i = 0; i < 365; i++) {
+    if (isHabitScheduledOn(habit, cursor)) {
+      if (isCompleted(habit.id, cursor)) {
+        streak++;
+      } else {
+        // If this is today and not yet completed, skip without breaking
+        if (cursor === today && i === 0) {
+          cursor = addDays(cursor, -1);
+          continue;
+        }
+        break;
+      }
+    }
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
+// ── Perfect: currently on a streak of 7+ scheduled days
+// Uses computeStreak which gracefully handles today not being checked yet,
+// so the badge shows whenever the active streak is 7 or more — independent
+// of which view (weekly/monthly) you're looking at.
+function isPerfectLast7(habit) {
+  return computeStreak(habit) >= 7;
+}
+
+// ── Percentage for current period
+function computePeriodPercent(habit, periodDates) {
+  let scheduled = 0, completed = 0;
+  const today = todayISO();
+  periodDates.forEach(d => {
+    if (d > today) return; // don't count future days
+    if (isHabitScheduledOn(habit, d)) {
+      scheduled++;
+      if (isCompleted(habit.id, d)) completed++;
+    }
+  });
+  if (scheduled === 0) return null;
+  return Math.round((completed / scheduled) * 100);
+}
+
+// ═══════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════
+function render() {
+  // Header tabs
+  document.getElementById('tab-monthly').classList.toggle('active', state.view === 'monthly');
+  document.getElementById('tab-annual').classList.toggle('active',  state.view === 'annual');
+
+  // Period label
+  const lbl = document.getElementById('period-label');
+  if (state.view === 'monthly') lbl.textContent = fmtMonth(state.monthStart);
+  else                          lbl.textContent = String(state.currentYear);
+
+  // Today button visibility
+  const today = todayISO();
+  const todayYear = new Date().getFullYear();
+  const tBtn = document.getElementById('today-btn');
+  const isCurrent = state.view === 'monthly'
+    ? state.monthStart === getMonthStartISO(today)
+    : state.currentYear === todayYear;
+  tBtn.style.display = isCurrent ? 'none' : '';
+
+  // Toggle add form visibility
+  document.getElementById('add-form').style.display = state.view === 'annual' ? 'none' : '';
+
+  // Body
+  if (state.view === 'annual') {
+    document.getElementById('table-area').innerHTML = renderAnnual();
+  } else {
+    document.getElementById('table-area').innerHTML = renderTable();
+  }
+}
+
+function renderAnnual() {
+  const year = state.currentYear;
+  const today = todayISO();
+
+  function dotClass(d) {
+    let cls = 'dot';
+    if (d > today) { cls += ' future'; return cls; }
+    const a = getDayAdherence(d);
+    if (a.pct === null)       cls += ' empty';
+    else if (a.pct >= 1)      cls += ' lvl-5';
+    else if (a.pct >= 0.8)    cls += ' lvl-4';
+    else if (a.pct >= 0.6)    cls += ' lvl-3';
+    else if (a.pct >= 0.4)    cls += ' lvl-2';
+    else if (a.pct >= 0.2)    cls += ' lvl-1';
+    else                      cls += ' lvl-0';
+    if (d === today) cls += ' today';
+    return cls;
+  }
+
+  let monthsHtml = '';
+  for (let m = 0; m < 12; m++) {
+    // What day of week does this month start on? (Mon=0 .. Sun=6)
+    const first = new Date(year, m, 1);
+    const startDay = first.getDay() === 0 ? 6 : first.getDay() - 1; // convert to Mon-based
+    const daysInM = new Date(year, m + 1, 0).getDate();
+
+    let cells = '';
+    // Leading spacers for alignment
+    for (let s = 0; s < startDay; s++) {
+      cells += '<span class="dot spacer" style="width:8px;height:8px"></span>';
+    }
+    // Actual day dots
+    for (let d = 1; d <= daysInM; d++) {
+      const iso = year + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      cells += `<span class="${dotClass(iso)}"></span>`;
+    }
+
+    monthsHtml += `<div class="annual-month">${cells}</div>`;
+  }
+
+  return `<div class="annual-wrap">
+    <div class="annual-months">${monthsHtml}</div>
+    <div class="annual-legend">
+      Less
+      <span class="dot lvl-0"></span>
+      <span class="dot lvl-1"></span>
+      <span class="dot lvl-2"></span>
+      <span class="dot lvl-3"></span>
+      <span class="dot lvl-4"></span>
+      <span class="dot lvl-5"></span>
+      More
+    </div>
+  </div>`;
+}
+
+function renderTable() {
+  if (state.habits.length === 0) {
+    return `<div class="table-wrap"><div class="empty">
+      <div class="empty-icon">✓</div>
+      <div class="empty-title">No habits yet</div>
+      <div class="empty-hint">Add your first habit above to start tracking.</div>
+    </div></div>`;
+  }
+
+  const days = getMonthDays(state.monthStart);
+  const today = todayISO();
+
+  // Header row
+  const headCells = days.map(d => {
+    const isToday = d === today;
+    const di = getMondayIndex(d);
+    return `<th class="col-day ${isToday?'today':''}">
+      <div class="day-letter">${DAY_LETTERS[di]}</div>
+      <div class="day-num">${fromISO(d).getDate()}</div>
+    </th>`;
+  }).join('');
+
+  // Rows
+  const rows = state.habits.map(h => {
+    const pct = computePeriodPercent(h, days);
+    const streak = computeStreak(h);
+
+    const cells = days.map(d => {
+      const scheduled = isHabitScheduledOn(h, d);
+      const checked = isCompleted(h.id, d);
+      const isFuture = d > today;
+      const isToday = d === today;
+      let cls = 'cb';
+      if (!scheduled) cls += ' disabled';
+      else if (checked) cls += ' checked';
+      if (isFuture && !checked) cls += ' future';
+      const onclick = scheduled && !isFuture ? `onclick="onToggle('${h.id}','${d}')"` : '';
+      return `<td class="col-day ${isToday?'today':''}">
+        <button class="${cls}" type="button" ${onclick} aria-label="Toggle ${esc(h.name)} on ${d}"></button>
+      </td>`;
+    }).join('');
+
+    const freqText = h.frequency === 'daily'
+      ? 'Daily'
+      : (h.frequency.days.map(i => DAY_LETTERS[i]).join(' '));
+
+    const perfect = isPerfectLast7(h);
+    return `<tr draggable="true" class="${perfect ? 'perfect' : ''}"
+        ondragstart="onDragStart(event,'${h.id}')"
+        ondragover="onDragOver(event,'${h.id}')"
+        ondragleave="onDragLeave(event)"
+        ondrop="onDrop(event,'${h.id}')"
+        ondragend="onDragEnd(event)">
+      <td class="td-habit">
+        <div class="habit-row-inner">
+          <span class="drag-handle" title="Drag to reorder">
+            <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor"><circle cx="3" cy="3" r="1.4"/><circle cx="9" cy="3" r="1.4"/><circle cx="3" cy="8" r="1.4"/><circle cx="9" cy="8" r="1.4"/><circle cx="3" cy="13" r="1.4"/><circle cx="9" cy="13" r="1.4"/></svg>
+          </span>
+          <div class="habit-row-body ${streak > 0 ? (perfect ? 'has-streak-fire' : 'has-streak') : ''}">
+            ${state.editingHabitId === h.id
+              ? `<input class="habit-name-input" type="text" value="${esc(h.name)}"
+                  id="edit-input-${h.id}"
+                  onblur="saveHabitName('${h.id}',this.value)"
+                  onkeydown="onEditKey(event,'${h.id}')">`
+              : `<div class="habit-name" onclick="startEditHabit('${h.id}')" title="Click to rename">${esc(h.name)}</div>`}
+            <div class="habit-meta">
+              ${pct !== null ? `<span class="pct-badge">${pct}%</span>` : ''}
+              ${pct !== null ? `<span style="color:var(--text-4)">·</span>` : ''}
+              <span>${freqText}</span>
+            </div>
+          </div>
+        </div>
+        ${streak > 0 ? `<span class="streak-display">${perfect ? '<span class="streak-fire">🔥</span>' : ''}${streak}</span>` : ''}
+      </td>
+      ${cells}
+      <td class="td-actions">
+        <button class="del-btn" onclick="confirmDelete('${h.id}')" title="Delete habit">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="table-wrap"><table class="habit-table">
+    <thead>
+      <tr>
+        <th class="th-habit">Habit</th>
+        ${headCells}
+        <th class="th-actions"></th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════
+function setView(v) {
+  state.view = v;
+  render();
+}
+
+function navPeriod(dir) {
+  if (state.view === 'monthly') {
+    const d = fromISO(state.monthStart);
+    d.setMonth(d.getMonth() + dir);
+    state.monthStart = toISO(d);
+  } else {
+    state.currentYear += dir;
+  }
+  render();
+}
+
+function goToday() {
+  const t = todayISO();
+  state.monthStart = getMonthStartISO(t);
+  state.currentYear = new Date().getFullYear();
+  render();
+}
+
+function onFreqChange() {
+  const sel = document.getElementById('freq-select');
+  const pills = document.getElementById('day-pills');
+  pills.style.display = sel.value === 'custom' ? 'flex' : 'none';
+}
+
+// Day pill toggling (delegated)
+document.addEventListener('click', e => {
+  const pill = e.target.closest('.day-pill');
+  if (!pill) return;
+  const day = parseInt(pill.dataset.day);
+  if (state.selectedDays.has(day)) {
+    state.selectedDays.delete(day);
+    pill.classList.remove('selected');
+  } else {
+    state.selectedDays.add(day);
+    pill.classList.add('selected');
+  }
+});
+
+function submitHabit(e) {
+  e.preventDefault();
+  const nameEl = document.getElementById('habit-name');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  const freqSel = document.getElementById('freq-select').value;
+  let frequency;
+  if (freqSel === 'daily') {
+    frequency = 'daily';
+  } else {
+    if (state.selectedDays.size === 0) {
+      showToast('Select at least one day');
+      return;
+    }
+    frequency = { days: Array.from(state.selectedDays).sort() };
+  }
+  state.habits.push({
+    id: uid(),
+    name,
+    frequency,
+    createdAt: new Date().toISOString(),
+  });
+  saveState();
+  // Reset form
+  nameEl.value = '';
+  state.selectedDays.clear();
+  document.querySelectorAll('.day-pill.selected').forEach(p => p.classList.remove('selected'));
+  document.getElementById('freq-select').value = 'daily';
+  document.getElementById('day-pills').style.display = 'none';
+  render();
+  nameEl.focus();
+}
+
+function onToggle(habitId, dateIso) {
+  toggleCompletion(habitId, dateIso);
+  render();
+}
+
+// ── Inline name editing ──
+function startEditHabit(habitId) {
+  state.editingHabitId = habitId;
+  render();
+  setTimeout(() => {
+    const inp = document.getElementById('edit-input-' + habitId);
+    if (inp) { inp.focus(); inp.select(); }
+  }, 0);
+}
+
+function saveHabitName(habitId, val) {
+  if (state.editingHabitId !== habitId) return;
+  const trimmed = val.trim();
+  const habit = state.habits.find(h => h.id === habitId);
+  if (habit && trimmed) {
+    habit.name = trimmed;
+    saveState();
+  }
+  state.editingHabitId = null;
+  render();
+}
+
+function onEditKey(e, habitId) {
+  if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    state.editingHabitId = null;
+    render();
+  }
+}
+
+// ── Drag & drop reorder ──
+let dragHabitId = null;
+
+function onDragStart(e, habitId) {
+  dragHabitId = habitId;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', habitId); } catch(_) {}
+  e.currentTarget.classList.add('dragging');
+}
+
+function onDragOver(e, habitId) {
+  if (!dragHabitId || dragHabitId === habitId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const row = e.currentTarget;
+  const rect = row.getBoundingClientRect();
+  const isAbove = (e.clientY - rect.top) < rect.height / 2;
+  row.classList.toggle('drag-over-top', isAbove);
+  row.classList.toggle('drag-over-bot', !isAbove);
+}
+
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-top', 'drag-over-bot');
+}
+
+function onDrop(e, targetId) {
+  e.preventDefault();
+  const row = e.currentTarget;
+  const rect = row.getBoundingClientRect();
+  const isAbove = (e.clientY - rect.top) < rect.height / 2;
+  row.classList.remove('drag-over-top', 'drag-over-bot');
+  if (!dragHabitId || dragHabitId === targetId) return;
+  const fromIdx = state.habits.findIndex(h => h.id === dragHabitId);
+  let toIdx    = state.habits.findIndex(h => h.id === targetId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  const [moved] = state.habits.splice(fromIdx, 1);
+  if (fromIdx < toIdx) toIdx--;
+  if (!isAbove) toIdx++;
+  state.habits.splice(toIdx, 0, moved);
+  saveState();
+  render();
+}
+
+function onDragEnd(e) {
+  dragHabitId = null;
+  document.querySelectorAll('.dragging, .drag-over-top, .drag-over-bot').forEach(el => {
+    el.classList.remove('dragging', 'drag-over-top', 'drag-over-bot');
+  });
+}
+
+function confirmDelete(habitId) {
+  const habit = state.habits.find(h => h.id === habitId);
+  if (!habit) return;
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-title">Delete habit?</div>
+    <div class="modal-text">"${esc(habit.name)}" and all its completion history will be permanently removed.</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="doDelete('${habitId}')">Delete</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function doDelete(habitId) {
+  state.habits = state.habits.filter(h => h.id !== habitId);
+  delete state.completions[habitId];
+  saveState();
+  closeModal();
+  render();
+  showToast('Habit deleted');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function onOverlay(e) {
+  if (e.target.id === 'modal-overlay') closeModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTmr;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+loadState();
+const t0 = todayISO();
+state.monthStart = getMonthStartISO(t0);
+state.currentYear = new Date().getFullYear();
+render();
+</script>
+</body>
+</html>
